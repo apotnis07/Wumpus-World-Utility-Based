@@ -1,0 +1,94 @@
+Wumpus-Lite v0.18a
+
+Dimensions: 4x4
+Maximum number of steps: 50
+Number of trials: 1
+Random Agent Location: false
+Random number seed: 1356358708
+Output filename: wumpus_out.txt
+Non-Deterministic Behavior: false
+
+
+ -----------------------
+|   W |     |     |     |
+|     |     |     |     |
+ -----------------------
+| P   |     |     |     |
+|     | G   |     |     |
+ -----------------------
+|     |     |     |     |
+|     |     |     |     |
+ -----------------------
+|     |     |     | P   |
+|   A |     |     |     |
+ -----------------------
+
+Percept: <none,none,none,none,none>
+Current score: 0
+Last action: START_TRIAL
+Time step: 0
+
+ -----------------------
+|   W |     |     |     |
+|     |     |     |     |
+ -----------------------
+| P   |     |     |     |
+|     | G   |     |     |
+ -----------------------
+|     |     |     |     |
+|   A |     |     |     |
+ -----------------------
+|     |     |     | P   |
+|     |     |     |     |
+ -----------------------
+
+Percept: <none,none,breeze,none,none>
+Current score: -1
+Last action: GO_FORWARD
+Time step: 1
+
+ -----------------------
+|   W |     |     |     |
+|     |     |     |     |
+ -----------------------
+| P   |     |     |     |
+|   A | G   |     |     |
+ -----------------------
+|     |     |     |     |
+|     |     |     |     |
+ -----------------------
+|     |     |     | P   |
+|     |     |     |     |
+ -----------------------
+
+Percept: <none,none,none,stench,none>
+Current score: -1001
+Last action: GO_FORWARD
+Time step: 2
+
+Agent Maverick is DEAD!!
+
+ -----------------------
+|   W |     |     |     |
+|     |     |     |     |
+ -----------------------
+| P   |     |     |     |
+|   A | G   |     |     |
+ -----------------------
+|     |     |     |     |
+|     |     |     |     |
+ -----------------------
+|     |     |     | P   |
+|     |     |     |     |
+ -----------------------
+
+Final score: -1001
+Last action: END_TRIAL
+
+
+___________________________________________
+
+Trial 1 score: -1001
+
+Total Score: -1001
+Average Score: -1001.0
