@@ -86,6 +86,11 @@ class AgentFunction {
 
 	private int depth;
 
+	private static int action = 0;
+
+	private int no_of_unvisited = 15;
+
+
 
 	public AgentFunction(Agent agent) {
 		// for illustration purposes; you may delete all code
@@ -157,31 +162,23 @@ class AgentFunction {
 		rand = new Random();
 	}
 	//Get new direction given the current direction once the action is performed
-	public int get_new_direction(int direction, String action){
-		if (direction == 1 && action.equals("Forward"))
-			return 1;
-		if (direction == 1 && action.equals("Left"))
-			return 4;
-		if (direction == 1 && action.equals("Right"))
-			return 2;
-		if (direction == 2 && action.equals("Forward"))
-			return 2;
-		if (direction == 2 && action.equals("Left"))
-			return 1;
-		if (direction == 2 && action.equals("Right"))
-			return 3;
-		if (direction == 3 && action.equals("Forward"))
-			return 3;
-		if (direction == 3 && action.equals("Left"))
-			return 2;
-		if (direction == 3 && action.equals("Right"))
-			return 4;
-		if (direction == 4 && action.equals("Forward"))
-			return 4;
-		if(direction == 4 && action.equals("Left"))
-			return 3;
-		if (direction == 4 && action.equals("Right"))
-			return 1;
+	public char get_new_direction(int action, char direction){
+		if (direction == 'N' && action == 0)
+			return 'W';
+		if (direction == 'S' && action == 0)
+			return 'E';
+		if (direction == 'E' && action == 0)
+			return 'N';
+		if (direction == 'W' && action == 0)
+			return 'S';
+		if (direction == 'N' && action == 1)
+			return 'E';
+		if (direction == 'S' && action == 1)
+			return 'W';
+		if (direction == 'E' && action == 1)
+			return 'S';
+		if (direction == 'W' && action == 1)
+			return 'N';
 		else
 			return direction;
 	}
@@ -225,18 +222,18 @@ class AgentFunction {
 	}
 	public void update_probable_wumpus(int[] location, boolean stench){
 //		if (stench){
-		for(int[] sqr: getAdjacentValidSquares(location)){
-			if(stench) {
-				if (probableWumpus[sqr[0]][sqr[1]].equals("maybe_wumpus")) {
-					update_wumpus_found(sqr[0], sqr[1]);
-				} else if (!grid[sqr[0]][sqr[1]].equals("visited")) {
-					probableWumpus[sqr[0]][sqr[1]] = "maybe_wumpus";
+			for(int[] sqr: getAdjacentValidSquares(location)){
+				if(stench) {
+					if (probableWumpus[sqr[0]][sqr[1]].equals("maybe_wumpus")) {
+						update_wumpus_found(sqr[0], sqr[1]);
+					} else if (!grid[sqr[0]][sqr[1]].equals("visited")) {
+						probableWumpus[sqr[0]][sqr[1]] = "maybe_wumpus";
+					}
+				}
+				else if(probableWumpus[sqr[0]][sqr[1]].equals("maybe_wumpus") && !stench){
+					probableWumpus[sqr[0]][sqr[1]] = "no_wumpus";
 				}
 			}
-			else if(probableWumpus[sqr[0]][sqr[1]].equals("maybe_wumpus") && !stench){
-				probableWumpus[sqr[0]][sqr[1]] = "no_wumpus";
-			}
-		}
 //		}
 	}
 
@@ -272,7 +269,54 @@ class AgentFunction {
 		highest_reward[1] = max_element;
 		return highest_reward;
 	}
-	public int[] calculate_reward(int[] location, int[] next_sq){
+
+	public int getNo_of_unvisited(){
+		int count1 = 0;
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				if(grid[i][j].equals("unvisited")){
+					count1 += 1;
+				}
+			}
+		}
+		return count1;
+	}
+
+	private boolean isValid(int x, int y) {
+		if (x >= 0 && x < 4 && y >= 0 && y < 4)
+			return true;
+		return false;
+	}
+
+	public boolean facingVisited(int[] location, char direction){
+		boolean check = false;
+		if(direction == 'N' && isValid(location[0] + 1, location[1]) && grid[location[0] + 1][location[1]].equals("visited")){
+			check = true;
+		}
+		if(direction == 'S' && isValid(location[0] - 1, location[1]) && grid[location[0] - 1][location[1]].equals("visited")){
+			check = true;
+		}
+		if(direction == 'E' && isValid(location[0], location[1] + 1) && grid[location[0]][location[1] + 1].equals("visited")){
+			check = true;
+		}
+		if(direction == 'W' && isValid(location[0], location[1] - 1) && grid[location[0]][location[1] - 1].equals("visited")){
+			check = true;
+		}
+//		if(direction == 'N' && isValid(location[0] + 1, location[1]) &&(!probablePit[location[0] + 1][location[1]].equals("maybe_pit") || !probableWumpus[location[0] + 1][location[1]].equals("maybe_wumpus"))){
+//			check = true;
+//		}
+//		if(direction == 'S' && isValid(location[0] - 1, location[1]) && (!probablePit[location[0] - 1][location[1]].equals("maybe_pit") || !probableWumpus[location[0] - 1][location[1]].equals("maybe_wumpus"))){
+//			check = true;
+//		}
+//		if(direction == 'E' && isValid(location[0], location[1]+ 1)&& (!probablePit[location[0]][location[1] + 1].equals("maybe_pit") || !probableWumpus[location[0]][location[1] + 1].equals("maybe_wumpus"))){
+//			check = true;
+//		}
+//		if(direction == 'W' && isValid(location[0], location[1] - 1)&& (!probablePit[location[0]][location[1] - 1].equals("maybe_pit") || !probableWumpus[location[0]][location[1] - 1].equals("maybe_wumpus"))){
+//			check = true;
+//		}
+		return check;
+	}
+	public int[] calculate_reward(int[] location, char dir, int[] next_sq){
 //		Create rewards for all actions, if 0 then left, if 1 then right
 //		if 2 then straight. For action 2 you have to check if by going straight
 //		will the agent land in the next_sq (has to be exact square).
@@ -292,22 +336,26 @@ class AgentFunction {
 				// do not add to available squares.
 				// add function to turn towards only remaining square(maybe even function also not needed)
 				// just increase the reward of turning towards the it when only one square possible
-				if (location[1] == 0 && agent.getDirection() == 'N') {
+				if((breeze || stench) && !facingVisited(location, dir)){
+					reward[0] = 10;
+				}
+				else if (location[1] == 0 && dir == 'N') {
 					reward[0] = -2;
-				} else if (location[1] == 3 && agent.getDirection() == 'S') {
+				} else if (location[1] == 3 && dir == 'S') {
 					reward[0] = -2;
 				} else {
 					reward[0] = -1;
 				}
 			} else if (action == 1) {
-				if (location[1] == 3 && agent.getDirection() == 'N') {
+				if (location[1] == 3 && dir == 'N') {
 					reward[1] = -2;
 				} else {
 					reward[1] = -1;
 				}
 			} else if (action == 2 && checkLandSquare(location, next_sq)) {
+				no_of_unvisited = getNo_of_unvisited();
 				if (grid[next_sq[0]][next_sq[1]].equals("unvisited")) {
-					reward[2] = 1;
+					reward[2] = 1000 / no_of_unvisited;
 				}
 				// maybe unvisited 2, visited 1, noop 0
 				if (grid[next_sq[0]][next_sq[1]].equals("visited")) {
@@ -320,19 +368,23 @@ class AgentFunction {
 					reward[2] = -1000;
 				}
 			} else if (action == 3 && probableWumpus[next_sq[0]][next_sq[1]].equals("Wumpus")) {
-				reward[3] = 5;
+				reward[3] = -10;
 			} else if (action == 4) {
 				reward[4] = 0;
 			}
 		}
 		return argmax(reward);
 	}
-	public int calculate_utility(int[] location, int depth){
+
+
+	public int calculate_utility(int[] location, char dir, int depth){
 		int max_utility = Integer.MIN_VALUE;
 		int r = 4;
+		if (depth == 0) {
+			return 0;
+		}
 
-//		if (depth != 5) {
-		for (int[] sqr : getAdjacentValidSquares(location)) {
+		for(int[] sqr: getAdjacentValidSquares(location)) {
 
 //				use bellman update equation, where the calculate_reward fn calculates
 //				the reward, and have to store the previous utilities in a separate
@@ -343,33 +395,31 @@ class AgentFunction {
 //			belief_state_location[0] = location[0];
 //			belief_state_location[1] = location[1];
 
-//				for (int j = 0; j < 3; j++) {
+//			for (int j = 0; j < 3; j++) {
 //				total_reward = calculate_reward(belief_state_location, sqr);
-				if (depth == 0) {
-					total_reward = calculate_reward(location, sqr);
-					q_value = total_reward[1];
-					prev_utility[location[0]][location[1]] = q_value;
-					if (q_value > max_utility) {
-						r = total_reward[0];
-						max_utility = q_value;
-//						belief_state_location[0] = sqr[0];
-//						belief_state_location[1] = sqr[1];
-					}
-					return max_utility;
-				} else {
-					for (int[] square : getAdjacentValidSquares(location)) {
-						total_reward = calculate_reward(location, square);
+//				if (j == 0) {
+				total_reward = calculate_reward(location, dir, sqr);
+				dir = get_new_direction(total_reward[0], agent.getDirection());
+				q_value = total_reward[1] + calculate_utility(sqr, dir, depth - 1);
+//					prev_utility[location[0]][location[1]] = q_value;
+				if (q_value > max_utility) {
+					action = total_reward[0];
+					max_utility = q_value;
+				}
+//				}
+//				else {
+//					for(int[] square: getAdjacentValidSquares(belief_state_location)) {
+//						total_reward = calculate_reward(belief_state_location, square);
 //						q_value = total_reward[1] + prev_utility[location[0]][location[1]];
 //						prev_utility[location[0]][location[1]] = q_value;
-						q_value = total_reward[1] + calculate_utility(location, depth - 1);
-						if (q_value > max_utility) {
-							r = total_reward[0];
-							max_utility = q_value;
+//						if (q_value > max_utility) {
+//							r = total_reward[0];
+//							max_utility = q_value;
 //							belief_state_location[0] = location[0];
 //							belief_state_location[1] = location[1];
-						}
-					}
-				}
+//						}
+//					}
+//				}
 //				if (utility[1] > max_utility){
 //					r = utility[0];
 //					max_utility = utility[1];
@@ -379,15 +429,14 @@ class AgentFunction {
 //					r = total_reward[0];
 //					max_utility = q_value;
 //				}
-//				}
 //			}
-//			return max_utility;
-		}
+
+			}
 
 
-
-		return r;
+		return action;
 	}
+
 
 	public int process(TransferPercept tp) {
 		// To build your own intelligent agent, replace
@@ -416,8 +465,8 @@ class AgentFunction {
 
 		update_probable_wumpus(agent_loc, stench);
 
-		int depth = 5;
-		int action = calculate_utility(agent_loc, depth);
+		int depth = 2;
+		int action = calculate_utility(agent_loc, agent.getDirection() ,depth);
 
 		return actionTable[action];
 	}
