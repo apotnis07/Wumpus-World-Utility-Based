@@ -43,7 +43,10 @@ class WorldApplication {
 
 		Random rand = new Random();
 //		int seed = rand.nextInt();
-		int seed = 1356358708;
+		int seed = -317685700;
+//		int seed = -822444706;
+//		int seed = -1695908313;
+//		int seed = 1356358708;
 //		int seed = -1168900958;
 //		int seed = -899135435;
 

@@ -84,6 +84,8 @@ class AgentFunction {
 	private int[][] prev_utility;
 	private int[] belief_state_location;
 
+	private int depth;
+
 
 	public AgentFunction(Agent agent) {
 		// for illustration purposes; you may delete all code
@@ -223,18 +225,18 @@ class AgentFunction {
 	}
 	public void update_probable_wumpus(int[] location, boolean stench){
 //		if (stench){
-			for(int[] sqr: getAdjacentValidSquares(location)){
-				if(stench) {
-					if (probableWumpus[sqr[0]][sqr[1]].equals("maybe_wumpus")) {
-						update_wumpus_found(sqr[0], sqr[1]);
-					} else if (!grid[sqr[0]][sqr[1]].equals("visited")) {
-						probableWumpus[sqr[0]][sqr[1]] = "maybe_wumpus";
-					}
-				}
-				else if(probableWumpus[sqr[0]][sqr[1]].equals("maybe_wumpus") && !stench){
-					probableWumpus[sqr[0]][sqr[1]] = "no_wumpus";
+		for(int[] sqr: getAdjacentValidSquares(location)){
+			if(stench) {
+				if (probableWumpus[sqr[0]][sqr[1]].equals("maybe_wumpus")) {
+					update_wumpus_found(sqr[0], sqr[1]);
+				} else if (!grid[sqr[0]][sqr[1]].equals("visited")) {
+					probableWumpus[sqr[0]][sqr[1]] = "maybe_wumpus";
 				}
 			}
+			else if(probableWumpus[sqr[0]][sqr[1]].equals("maybe_wumpus") && !stench){
+				probableWumpus[sqr[0]][sqr[1]] = "no_wumpus";
+			}
+		}
 //		}
 	}
 
@@ -325,43 +327,46 @@ class AgentFunction {
 		}
 		return argmax(reward);
 	}
-	public int calculate_utility(int[] location){
+	public int calculate_utility(int[] location, int depth){
 		int max_utility = Integer.MIN_VALUE;
 		int r = 4;
-		for(int[] sqr: getAdjacentValidSquares(location)) {
+
+//		if (depth != 5) {
+		for (int[] sqr : getAdjacentValidSquares(location)) {
 
 //				use bellman update equation, where the calculate_reward fn calculates
 //				the reward, and have to store the previous utilities in a separate
 //			array. first utility is zero. then u(s = 1) = calculate_reward + previous_utility(u(s=0))
 //			then u(s=2) = calculate_reward + previous_utility(u(s=1)). Like this for say 5 time steps
 //				if prev_utility
-			belief_state_location = new int[2];
-			belief_state_location[0] = location[0];
-			belief_state_location[1] = location[1];
-			
-			for (int j = 0; j < 3; j++) {
+//			belief_state_location = new int[2];
+//			belief_state_location[0] = location[0];
+//			belief_state_location[1] = location[1];
+
+//				for (int j = 0; j < 3; j++) {
 //				total_reward = calculate_reward(belief_state_location, sqr);
-				if (j == 0) {
-					total_reward = calculate_reward(belief_state_location, sqr);
+				if (depth == 0) {
+					total_reward = calculate_reward(location, sqr);
 					q_value = total_reward[1];
 					prev_utility[location[0]][location[1]] = q_value;
 					if (q_value > max_utility) {
 						r = total_reward[0];
 						max_utility = q_value;
-						belief_state_location[0] = sqr[0];
-						belief_state_location[1] = sqr[1];
+//						belief_state_location[0] = sqr[0];
+//						belief_state_location[1] = sqr[1];
 					}
-				}
-				else {
-					for(int[] square: getAdjacentValidSquares(belief_state_location)) {
-						total_reward = calculate_reward(belief_state_location, square);
-						q_value = total_reward[1] + prev_utility[location[0]][location[1]];
-						prev_utility[location[0]][location[1]] = q_value;
+					return max_utility;
+				} else {
+					for (int[] square : getAdjacentValidSquares(location)) {
+						total_reward = calculate_reward(location, square);
+//						q_value = total_reward[1] + prev_utility[location[0]][location[1]];
+//						prev_utility[location[0]][location[1]] = q_value;
+						q_value = total_reward[1] + calculate_utility(location, depth - 1);
 						if (q_value > max_utility) {
 							r = total_reward[0];
 							max_utility = q_value;
-							belief_state_location[0] = location[0];
-							belief_state_location[1] = location[1];
+//							belief_state_location[0] = location[0];
+//							belief_state_location[1] = location[1];
 						}
 					}
 				}
@@ -374,9 +379,11 @@ class AgentFunction {
 //					r = total_reward[0];
 //					max_utility = q_value;
 //				}
-			}
+//				}
+//			}
+//			return max_utility;
+		}
 
-			}
 
 
 		return r;
@@ -409,7 +416,8 @@ class AgentFunction {
 
 		update_probable_wumpus(agent_loc, stench);
 
-		int action = calculate_utility(agent_loc);
+		int depth = 5;
+		int action = calculate_utility(agent_loc, depth);
 
 		return actionTable[action];
 	}
