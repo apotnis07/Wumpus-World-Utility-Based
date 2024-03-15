@@ -369,6 +369,16 @@ class AgentFunction {
 		return check;
 	}
 
+	public int countAdjSquareSafeAndUnvisited(int[] location){
+		int x = 0;
+		for(int[] sqr : getAdjacentValidSquares(location)){
+			if(grid[sqr[0]][sqr[1]].equals("unvisited") && probablePit[sqr[0]][sqr[1]].equals("no_pit") && probableWumpus[sqr[0]][sqr[1]].equals("no_wumpus")){
+				x += 1;
+			}
+		}
+		return x;
+	}
+
 	public int find_action(int maximum_utility){
 		for (int i = 0; i < depth; i++) {
 			for (int j = 0; j < 5; j++) {
@@ -393,9 +403,12 @@ class AgentFunction {
 					reward[0] = 100; // Only one unvisited adjacent square, reward turning towards it
 				} else if (s != 1 && !facingUnvisited(location, get_new_direction(0, dir))) {
 					reward[0] = -100; // Not facing an unvisited square, penalize turning
-//				} else if(facingUnvisited(location, get_new_direction(0, dir)) && adjSquareSafeAndUnvisited(location)){
-//					reward[0] = 15;
 				}
+//				} else if(facingUnvisited(location, get_new_direction(0, dir)) && adjSquareSafeAndUnvisited(location)){
+//					reward[0] = 1000/getNo_of_unvisited();
+//				} else if (facingUnvisited(location, get_new_direction(0, dir)) && adjSquareSafeAndUnvisited(location) && countAdjSquareSafeAndUnvisited(location) == 1) {
+//					reward[0] = 200/getNo_of_unvisited();
+//				}
 				else {
 					reward[0] = -1; // Default small penalty for turning
 				}
@@ -405,8 +418,15 @@ class AgentFunction {
 				} else if (s != 1 && !facingUnvisited(location, get_new_direction(1, dir))) {
 					reward[1] = -100;
 //				} else if(facingUnvisited(location, get_new_direction(1, dir)) && adjSquareSafeAndUnvisited(location)){
-//					reward[1] = 15;
+//					reward[1] = 1000/getNo_of_unvisited();
 				}
+//			else if (facingUnvisited(location, get_new_direction(1, dir)) && adjSquareSafeAndUnvisited(location) && countAdjSquareSafeAndUnvisited(location) == 1) {
+//				reward[1] = 200/getNo_of_unvisited();
+//			}
+//				else if (facingUnvisited(location, get_new_direction(1, dir)) && adjSquareSafeAndUnvisited(location)) {
+//					reward[1] = 100;
+//				}
+
 				else {
 					reward[1] = -1;
 				}
@@ -424,7 +444,7 @@ class AgentFunction {
 				reward[3] = 5; // Small reward for shooting a confirmed Wumpus
 			} else if (action == 4) { // no-op
 				if (adjSquareSafeAndUnvisited(location)) {
-					reward[4] = -100; // Penalize no-op when there are safe unvisited squares
+					reward[4] = -300; // Penalize no-op when there are safe unvisited squares
 				} else {
 					reward[4] = 0; // No penalty for no-op when all adjacent squares are visited or dangerous
 				}
@@ -432,93 +452,93 @@ class AgentFunction {
 		}
 		return argmax(reward);
 	}
-	public int[] calculate_reward(int[] location, char dir, int[] next_sq){
-//		Create rewards for all actions, if 0 then left, if 1 then right
-//		if 2 then straight. For action 2 you have to check if by going straight
-//		will the agent land in the next_sq (has to be exact square).
-//		if yes, check if unvisited, if yes +1. if no 0. Check if maybe_wumpus, if
-//		yes assign -1000. For shooting arrow on wumpus(confirmed) 0.
-//		If wumpus. Shoot and go forward if scream heard. else update probable wumpus
-//		as no wumpus where arrow was shot and mark the other square as wumpus.
-//		For pit assign -1000.
-		int[] reward = {Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE};
-		int s = getAdjacentValidSquares(location).size();
-		for(int i = 0; i < 5; i++) {
-			int action = i;
-			if (action == 0) {  //what if against wall
-				//(maybe)if facing unvisited square and no stench no breeze. higher reward to go straight
-				// add higher reward to turn towards unvisited if no breeze no stench
-				// if breeze or stench and only one possible way to go, then check which way that is and turn towards it
-				// can be maybe handled in adjacent square result. if adjacent square in probablePit or probableWumpus
-				// do not add to available squares.
-				// add function to turn towards only remaining square(maybe even function also not needed)
-				// just increase the reward of turning towards the it when only one square possible
-				if(s == 0){
-					reward[0] = -100;
-				}
-				if (s==1 && !facingVisited(location, dir)){
-					reward[0] = 100;
-				}
-				if(s!=1 && !facingUnvisited(location, get_new_direction(0, dir))){
-					reward[0] = -100;
-				}
-
-				else if (location[1] == 0 && dir == 'N') {
-					reward[0] = -2;
-				} else if (location[1] == 3 && dir == 'S') {
-					reward[0] = -2;
-				} else {
-					reward[0] = -1;
-				}
-			} else if (action == 1) {
-				if(s == 0){
-					reward[1] = -100;
-				}
-				if(facingUnvisited(location, get_new_direction(1, dir)) && adjSquareSafeAndUnvisited(location)){
-					reward[1] = 1000/getNo_of_unvisited();
-				}
-
-				else if (location[1] == 3 && dir == 'N') {
-					reward[1] = -2;
-				} else {
-					reward[1] = -1;
-				}
-			} else if (action == 2 && checkLandSquare(location, dir, next_sq)) {
-				no_of_unvisited = getNo_of_unvisited();
-				if (grid[next_sq[0]][next_sq[1]].equals("unvisited")) {
-					reward[2] = 1000 / no_of_unvisited;
-				}
-				// maybe unvisited 2, visited 1, noop 0
-				if (grid[next_sq[0]][next_sq[1]].equals("visited")) {
-					reward[2] = 0;
-				}
-				if (scream){
-					reward[2] = 100;
-				}
-//				if (grid[next_sq[0]][next_sq[1]].equals("visited") && (stench || breeze) && s == 1) {
-//					reward[2] = 1000/getNo_of_visited();
+//	public int[] calculate_reward(int[] location, char dir, int[] next_sq){
+////		Create rewards for all actions, if 0 then left, if 1 then right
+////		if 2 then straight. For action 2 you have to check if by going straight
+////		will the agent land in the next_sq (has to be exact square).
+////		if yes, check if unvisited, if yes +1. if no 0. Check if maybe_wumpus, if
+////		yes assign -1000. For shooting arrow on wumpus(confirmed) 0.
+////		If wumpus. Shoot and go forward if scream heard. else update probable wumpus
+////		as no wumpus where arrow was shot and mark the other square as wumpus.
+////		For pit assign -1000.
+//		int[] reward = {Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE};
+//		int s = getAdjacentValidSquares(location).size();
+//		for(int i = 0; i < 5; i++) {
+//			int action = i;
+//			if (action == 0) {  //what if against wall
+//				//(maybe)if facing unvisited square and no stench no breeze. higher reward to go straight
+//				// add higher reward to turn towards unvisited if no breeze no stench
+//				// if breeze or stench and only one possible way to go, then check which way that is and turn towards it
+//				// can be maybe handled in adjacent square result. if adjacent square in probablePit or probableWumpus
+//				// do not add to available squares.
+//				// add function to turn towards only remaining square(maybe even function also not needed)
+//				// just increase the reward of turning towards the it when only one square possible
+//				if(s == 0){
+//					reward[0] = -100;
 //				}
-				if (probableWumpus[next_sq[0]][next_sq[1]].equals("maybe_wumpus") || probablePit[next_sq[0]][next_sq[1]].equals("maybe_pit")) {
-					reward[2] = -1000;
-				}
-			} else if (action == 3) {
-//				if(s == 0 && !arrowShot && stench){
-//					reward[3] = 1100;
+//				if (s==1 && !facingVisited(location, dir)){
+//					reward[0] = 100;
 //				}
-				if(probableWumpus[next_sq[0]][next_sq[1]].equals("Wumpus") && !arrowShot && stench){
-					reward[3] = 5;
-				}
-			} else if (action == 4) {
-				if(adjSquareSafeAndUnvisited(location)){
-					reward[4] = -100;
-				}
-				else{
-					reward[4] = 0;
-				}
-			}
-		}
-		return argmax(reward);
-	}
+//				if(s!=1 && !facingUnvisited(location, get_new_direction(0, dir))){
+//					reward[0] = -100;
+//				}
+//
+//				else if (location[1] == 0 && dir == 'N') {
+//					reward[0] = -2;
+//				} else if (location[1] == 3 && dir == 'S') {
+//					reward[0] = -2;
+//				} else {
+//					reward[0] = -1;
+//				}
+//			} else if (action == 1) {
+//				if(s == 0){
+//					reward[1] = -100;
+//				}
+//				if(facingUnvisited(location, get_new_direction(1, dir)) && adjSquareSafeAndUnvisited(location)){
+//					reward[1] = 1000/getNo_of_unvisited();
+//				}
+//
+//				else if (location[1] == 3 && dir == 'N') {
+//					reward[1] = -2;
+//				} else {
+//					reward[1] = -1;
+//				}
+//			} else if (action == 2 && checkLandSquare(location, dir, next_sq)) {
+//				no_of_unvisited = getNo_of_unvisited();
+//				if (grid[next_sq[0]][next_sq[1]].equals("unvisited")) {
+//					reward[2] = 1000 / no_of_unvisited;
+//				}
+//				// maybe unvisited 2, visited 1, noop 0
+//				if (grid[next_sq[0]][next_sq[1]].equals("visited")) {
+//					reward[2] = 0;
+//				}
+//				if (scream){
+//					reward[2] = 100;
+//				}
+////				if (grid[next_sq[0]][next_sq[1]].equals("visited") && (stench || breeze) && s == 1) {
+////					reward[2] = 1000/getNo_of_visited();
+////				}
+//				if (probableWumpus[next_sq[0]][next_sq[1]].equals("maybe_wumpus") || probablePit[next_sq[0]][next_sq[1]].equals("maybe_pit")) {
+//					reward[2] = -1000;
+//				}
+//			} else if (action == 3) {
+////				if(s == 0 && !arrowShot && stench){
+////					reward[3] = 1100;
+////				}
+//				if(probableWumpus[next_sq[0]][next_sq[1]].equals("Wumpus") && !arrowShot && stench){
+//					reward[3] = 5;
+//				}
+//			} else if (action == 4) {
+//				if(adjSquareSafeAndUnvisited(location)){
+//					reward[4] = -300;
+//				}
+//				else{
+//					reward[4] = 0;
+//				}
+//			}
+//		}
+//		return argmax(reward);
+//	}
 
 	public int[] calculate_utility(int[] location, char dir, int depth1) {
 		int max_utility = Integer.MIN_VALUE;
@@ -527,7 +547,7 @@ class AgentFunction {
 			return new int[]{0, 4}; // Return a default value for depth 0
 		}
 		if (stench && !breeze && !arrowShot){
-//		if (getAdjacentValidSquares(location).size() == 0 && stench && !breeze && !arrowShot){
+//		if (getAdjacentValidSquares(location).size() < 3 && stench && !breeze && !arrowShot){
 			arrowShotLastTurn = true;
 			arrowShot = true;
 			return new int[]{100,3};
@@ -542,17 +562,26 @@ class AgentFunction {
 		}
 
 		if(!scream && arrowShotLastTurn){
+			arrowShotLastTurn = false;
+
 			if (dir == 'N' && isValid(location[0] + 1 ,location[1])){
 				probableWumpus[location[0] + 1][location[1]] = "no_wumpus";
+				return new int[] {100,2};
 			}
 			else if (dir == 'S' && isValid(location[0] - 1 ,location[1])){
 				probableWumpus[location[0] - 1][location[1]] = "no_wumpus";
+				return new int[] {100,2};
 			}
 			else if (dir == 'E' && isValid(location[0],location[1] + 1)){
 				probableWumpus[location[0]][location[1]+1] = "no_wumpus";
+				return new int[] {100,2};
+
 			}else if (dir == 'W' && isValid(location[0] ,location[1] - 1)){
 				probableWumpus[location[0]][location[1] - 1] = "no_wumpus";
+				return new int[] {100,2};
+
 			}
+
 		}
 
 		arrowShotLastTurn = false;
