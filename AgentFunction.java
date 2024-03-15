@@ -67,7 +67,7 @@ class AgentFunction {
 	private int pit_encountered = 0;
 	private int x;
 
-	private int steps = 0;
+	private static int steps = 0;
 
 	private int[] reward;
 
@@ -393,7 +393,10 @@ class AgentFunction {
 					reward[0] = 100; // Only one unvisited adjacent square, reward turning towards it
 				} else if (s != 1 && !facingUnvisited(location, get_new_direction(0, dir))) {
 					reward[0] = -100; // Not facing an unvisited square, penalize turning
-				} else {
+//				} else if(facingUnvisited(location, get_new_direction(0, dir)) && adjSquareSafeAndUnvisited(location)){
+//					reward[0] = 15;
+				}
+				else {
 					reward[0] = -1; // Default small penalty for turning
 				}
 			} else if (action == 1) { // turn right
@@ -401,7 +404,10 @@ class AgentFunction {
 					reward[1] = -100;
 				} else if (s != 1 && !facingUnvisited(location, get_new_direction(1, dir))) {
 					reward[1] = -100;
-				} else {
+//				} else if(facingUnvisited(location, get_new_direction(1, dir)) && adjSquareSafeAndUnvisited(location)){
+//					reward[1] = 15;
+				}
+				else {
 					reward[1] = -1;
 				}
 			} else if (action == 2 && checkLandSquare(location, dir, next_sq)) { // go forward
@@ -456,6 +462,7 @@ class AgentFunction {
 				if(s!=1 && !facingUnvisited(location, get_new_direction(0, dir))){
 					reward[0] = -100;
 				}
+
 				else if (location[1] == 0 && dir == 'N') {
 					reward[0] = -2;
 				} else if (location[1] == 3 && dir == 'S') {
@@ -467,9 +474,10 @@ class AgentFunction {
 				if(s == 0){
 					reward[1] = -100;
 				}
-				if(s!=1 && !facingUnvisited(location, get_new_direction(1, dir))){
-					reward[1] = -100;
+				if(facingUnvisited(location, get_new_direction(1, dir)) && adjSquareSafeAndUnvisited(location)){
+					reward[1] = 1000/getNo_of_unvisited();
 				}
+
 				else if (location[1] == 3 && dir == 'N') {
 					reward[1] = -2;
 				} else {
@@ -482,7 +490,7 @@ class AgentFunction {
 				}
 				// maybe unvisited 2, visited 1, noop 0
 				if (grid[next_sq[0]][next_sq[1]].equals("visited")) {
-					reward[2] = 1000/getNo_of_visited();
+					reward[2] = 0;
 				}
 				if (scream){
 					reward[2] = 100;
@@ -518,8 +526,10 @@ class AgentFunction {
 		if (depth1 == 0) {
 			return new int[]{0, 4}; // Return a default value for depth 0
 		}
-		if (getAdjacentValidSquares(location).size() == 0 && stench && !breeze && !arrowShot){
+		if (stench && !breeze && !arrowShot){
+//		if (getAdjacentValidSquares(location).size() == 0 && stench && !breeze && !arrowShot){
 			arrowShotLastTurn = true;
+			arrowShot = true;
 			return new int[]{100,3};
 		}
 		if(scream){
@@ -650,9 +660,22 @@ class AgentFunction {
 			return Action.GRAB;
 		}
 
+//		steps += 1;
+//		if(steps > 40){
+//			return Action.NO_OP;
+//		}
 		agent_loc = agent.getLocation().clone();
 
 		updateVisited(agent_loc);
+
+		visited_square_times[agent_loc[0]][agent_loc[1]] += 1;
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				if (visited_square_times[i][j] > 6){
+					return Action.NO_OP;
+				}
+			}
+		}
 
 //		List<int[]> adjSquares = getAdjacentValidSquares(agent_loc);
 
