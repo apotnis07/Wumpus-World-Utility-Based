@@ -1,24 +1,24 @@
 /*
 * Wumpus-Lite, version 0.18 alpha
 * A lightweight Java-based Wumpus World Simulator
-* 
+*
 * Written by James P. Biagioni (jbiagi1@uic.edu)
 * for CS511 Artificial Intelligence II
 * at The University of Illinois at Chicago
-* 
+*
 * Thanks to everyone who provided feedback and
 * suggestions for improving this application,
 * especially the students from Professor
 * Gmytrasiewicz's Spring 2007 CS511 class.
-* 
+*
 * Last modified 3/5/07
-* 
+*
 * DISCLAIMER:
 * Elements of this application were borrowed from
 * the client-server implementation of the Wumpus
 * World Simulator written by Kruti Mehta at
 * The University of Texas at Arlington.
-* 
+*
 */
 
 import java.io.BufferedWriter;
@@ -32,20 +32,29 @@ class WorldApplication {
 	public static void main(String args[]) {
 
 		int worldSize = 4;
-		int numTrials = 1;
+		int numTrials = 10000;
 		int maxSteps = 50;
 
 		boolean nonDeterministicMode = false;
 		boolean randomAgentLoc = false;
-		boolean userDefinedSeed = true;
+		boolean userDefinedSeed = false;
 
 		String outFilename = "wumpus_out.txt";
 
 		Random rand = new Random();
-//		int seed = rand.nextInt();
-		int seed = -317685700;
-//		int seed = -822444706;
-//		int seed = -1695908313;
+		int seed = rand.nextInt();
+//		int seed = 1784870770;
+//		int seed = -144576582;
+//		int seed = 1111452986;
+//		int seed = -2023961618;
+//		int seed = 2137119609;
+//		int seed = 659963618;
+//		int seed = -670569349;
+//		int seed = 102784575;
+//		int seed = 869403611;
+//		int seed = 525254293;
+//		int seed = 452330611;
+//		int seed = -93833533;
 //		int seed = 1356358708;
 //		int seed = -1168900958;
 //		int seed = -899135435;
