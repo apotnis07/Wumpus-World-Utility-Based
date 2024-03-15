@@ -95,6 +95,14 @@ class AgentFunction {
 	private int[] utilities;
 
 	private int[] res;
+
+	private static boolean arrowShot;
+
+	private static boolean arrowShotLastTurn = false;
+
+	private static boolean wumpusFound = false;
+
+
 	public AgentFunction(Agent agent) {
 		// for illustration purposes; you may delete all code
 		// inside this constructor when implementing your
@@ -122,6 +130,8 @@ class AgentFunction {
 		track_utility = new int[depth][5];
 
 		direction = 1;
+
+		arrowShot = false;
 
 		prev_loc = new int[3];
 
@@ -399,7 +409,7 @@ class AgentFunction {
 				if (grid[next_sq[0]][next_sq[1]].equals("unvisited")) {
 					reward[2] = 1000 / no_of_unvisited; // Higher reward for unvisited squares
 				} else if (grid[next_sq[0]][next_sq[1]].equals("visited")) {
-					reward[2] = 1000 / getNo_of_visited(); // Lower reward for visited squares
+					reward[2] = 0; // Lower reward for visited squares
 				}
 				if (probableWumpus[next_sq[0]][next_sq[1]].equals("maybe_wumpus") || probablePit[next_sq[0]][next_sq[1]].equals("maybe_pit")) {
 					reward[2] = -1000; // High penalty for potentially dangerous squares
@@ -474,14 +484,22 @@ class AgentFunction {
 				if (grid[next_sq[0]][next_sq[1]].equals("visited")) {
 					reward[2] = 1000/getNo_of_visited();
 				}
+				if (scream){
+					reward[2] = 100;
+				}
 //				if (grid[next_sq[0]][next_sq[1]].equals("visited") && (stench || breeze) && s == 1) {
 //					reward[2] = 1000/getNo_of_visited();
 //				}
 				if (probableWumpus[next_sq[0]][next_sq[1]].equals("maybe_wumpus") || probablePit[next_sq[0]][next_sq[1]].equals("maybe_pit")) {
 					reward[2] = -1000;
 				}
-			} else if (action == 3 && probableWumpus[next_sq[0]][next_sq[1]].equals("Wumpus")) {
-				reward[3] = 5;
+			} else if (action == 3) {
+//				if(s == 0 && !arrowShot && stench){
+//					reward[3] = 1100;
+//				}
+				if(probableWumpus[next_sq[0]][next_sq[1]].equals("Wumpus") && !arrowShot && stench){
+					reward[3] = 5;
+				}
 			} else if (action == 4) {
 				if(adjSquareSafeAndUnvisited(location)){
 					reward[4] = -100;
@@ -500,6 +518,34 @@ class AgentFunction {
 		if (depth1 == 0) {
 			return new int[]{0, 4}; // Return a default value for depth 0
 		}
+		if (getAdjacentValidSquares(location).size() == 0 && stench && !breeze && !arrowShot){
+			arrowShotLastTurn = true;
+			return new int[]{100,3};
+		}
+		if(scream){
+			wumpusFound = true;
+			for (int i = 0; i < 4; i++) {
+				for (int j = 0; j < 4; j++) {
+					probableWumpus[i][j] = "no_wumpus";
+				}
+			}
+		}
+
+		if(!scream && arrowShotLastTurn){
+			if (dir == 'N' && isValid(location[0] + 1 ,location[1])){
+				probableWumpus[location[0] + 1][location[1]] = "no_wumpus";
+			}
+			else if (dir == 'S' && isValid(location[0] - 1 ,location[1])){
+				probableWumpus[location[0] - 1][location[1]] = "no_wumpus";
+			}
+			else if (dir == 'E' && isValid(location[0],location[1] + 1)){
+				probableWumpus[location[0]][location[1]+1] = "no_wumpus";
+			}else if (dir == 'W' && isValid(location[0] ,location[1] - 1)){
+				probableWumpus[location[0]][location[1] - 1] = "no_wumpus";
+			}
+		}
+
+		arrowShotLastTurn = false;
 
 		for (int[] sqr : getAdjacentValidSquares(location)) {
 			int[] total_reward = calculate_reward_new(location, dir, sqr);
@@ -513,6 +559,8 @@ class AgentFunction {
 //				track_utility[depth1 - 1][r] = max_utility;
 			}
 		}
+
+
 
 		return new int[]{max_utility, r};
 	}
